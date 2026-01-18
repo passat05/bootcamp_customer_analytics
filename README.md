@@ -52,11 +52,6 @@ Kết quả CLV theo Survival Analysis + Gamma–Gamma: 50% CLV còn lại rơi 
 
 <img width="146" height="129" alt="Screenshot 2026-01-19 at 01 15 54" src="https://github.com/user-attachments/assets/a4a67786-88b9-4cb6-ad61-4763012ac888" />
 
-Sử dụng mô hình **Weibull AFT** kết hợp với **Gamma-Gamma**.
-* **Survival Curve:** Dự báo lộ trình suy yếu xác suất ở lại theo từng ngày.
-* **Expected Remaining Lifetime:** Tính toán số ngày còn lại một khách hàng dự kiến sẽ gắn bó.
-* **Dynamic CLV:** Ước tính giá trị kinh tế còn lại dựa trên thời gian sinh tồn dự báo.
-
 ---
 
 ## 📊 Decision Matrix: Choosing the Right Strategy
