@@ -36,11 +36,11 @@ Sau khi chạy mô hình, ngưỡng phù hợp cho p_alive xác định khách c
 
 ## 4. Survival Analysis & CLV (Time-to-Event View)
 Mô hình Weibull and CoxPH cho ra kết quả khá giống nhau cho Survival Curve
+* Mô hình CoxPH
 
-Mô hình CoxPH
 <img width="610" height="396" alt="Screenshot 2026-01-19 at 01 00 10" src="https://github.com/user-attachments/assets/9bb1b683-f551-40e7-974a-9095880a9333" />
 
-Mô hình Weibull
+* Mô hình Weibull
 
 <img width="621" height="387" alt="Screenshot 2026-01-19 at 01 01 43" src="https://github.com/user-attachments/assets/3ebf60d1-2e43-4797-afa8-70ec5bbea7b2" />
 
