@@ -63,14 +63,26 @@ Kết quả CLV theo Survival Analysis + Gamma–Gamma: 50% CLV còn lại rơi 
 
 💡 Key Insights  
 
-Khách hàng ưu tiên ở chiến lược 1,2 là những khách hàng đã giao dịch lần cuối khá lâu gần nửa năm nhưng giá trị giao dịch cao.
-Trong khi khách hàng ưu tiên ở chiến lược 3 lại là những khách hàng mới gần giao dịch và giao dịch ở mức trung bình.
-Mặc dù khách hàng trong tập chiến lược 1,2 có thể mang lại giá trị nếu đánh thức được tuy nhiên mức độ khả thi kho vì đã ngưng giao dịch quá lâu và đòi hỏi thời gian chăm sóc khá dài.
-Do đó trong ngắn hạn, ưu tiên nhóm khách ở nhóm 3 sẽ có tính khả thi cao hơn.
+Dựa trên bảng so sánh dữ liệu thực tế giữa 3 nhóm ưu tiên:
+
+Chiến lược 1 & 2 (Nhìn về quá khứ): * Tập trung vào nhóm có số ngày không giao dịch (Recency) rất cao (~180 ngày).
+
+Rủi ro: Đây là nhóm khách hàng "nguội lạnh". Dù giá trị lịch sử cao, nhưng xác suất để kích hoạt lại họ (Win-back) là cực thấp và tốn kém. Họ có thể đã chuyển sang đối thủ hoặc không còn nhu cầu.
+
+Chiến lược 3 (Nhìn vào tương lai - Survival Focus): * Tập trung vào nhóm có giao dịch rất gần đây (6 ngày).
+
+Lợi thế: Nhóm này đang ở trạng thái "nóng" (Active). Việc can thiệp lúc này mang tính phòng ngừa (Prevention) thay vì cứu vãn (Recovery).
+
+Tính khả thi: Giữ chân một người đang dùng dịch vụ luôn rẻ hơn và hiệu quả hơn gấp nhiều lần so với việc lôi kéo một người đã rời bỏ nửa năm.
+
+🚀 Recommendation (Chiến lược hành động)
+
+Ngắn hạn (Ưu tiên số 1): Đổ 80% ngân sách vào Chiến lược 3. Mục tiêu là bảo vệ dòng tiền hiện tại từ những khách hàng đang hoạt động nhưng bắt đầu có dấu hiệu rủi ro (dựa trên Survival Curve).
+
+Dài hạn (Ưu tiên số 2): Sử dụng 20% ngân sách còn lại cho Chiến lược 1 & 2 dưới hình thức các chiến dịch tự động (Automated re-engagement) để lọc ra những "khách hàng giá trị cao" còn sót lại, nhưng không đặt kỳ vọng quá lớn vào ROI của nhóm này.
 
 ---
 
 ## 📂 Project Structure
 * `data/`: Dữ liệu RFM-T thô.
-* `notebooks/`: 
-    * `customer_analysis.ipynb`
+* `customer_analysis.ipynb`
