@@ -65,8 +65,8 @@ Kết quả CLV theo Survival Analysis + Gamma–Gamma: 50% CLV còn lại rơi 
 
 Khách hàng ưu tiên ở chiến lược 1,2 là những khách hàng đã giao dịch lần cuối khá lâu gần nửa năm nhưng giá trị giao dịch cao.
 Trong khi khách hàng ưu tiên ở chiến lược 3 lại là những khách hàng mới gần giao dịch và giao dịch ở mức trung bình.
-Mặc dù khách hàng trong tập chiến lược 1,2 có thể mang lại giá trị nếu đánh thức được tuy nhiên mức độ khả thi kho vì đã ngưng giao dịch quá lâu.
-Do đó ưu tiên nhóm khách ở nhóm 3 sẽ có tính khả thi cao hơn.
+Mặc dù khách hàng trong tập chiến lược 1,2 có thể mang lại giá trị nếu đánh thức được tuy nhiên mức độ khả thi kho vì đã ngưng giao dịch quá lâu và đòi hỏi thời gian chăm sóc khá dài.
+Do đó trong ngắn hạn, ưu tiên nhóm khách ở nhóm 3 sẽ có tính khả thi cao hơn.
 
 ---
 
