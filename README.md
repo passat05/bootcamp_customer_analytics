@@ -55,20 +55,18 @@ Kết quả CLV theo Survival Analysis + Gamma–Gamma: 50% CLV còn lại rơi 
 ---
 
 ## 📊 Decision Matrix: Choosing the Right Strategy
-Khi ngân sách Retention chỉ đủ để bao phủ **20% Customer Base**, việc lựa chọn chiến lược là bài toán tối ưu hóa ROI.
 
 | Tiêu chí | 1. Classification | 2. BG-NBD | 3. Survival-based CLV |
 | :--- | :--- | :--- | :--- |
-| **Mục tiêu** | Giảm tỉ lệ Churn đơn thuần | Phát hiện khách "nguội" sớm | **Tối đa hóa doanh thu cứu vãn** |
-| **Đối tượng chọn** | Người sắp rời đi nhất | Người mua sai chu kỳ cá nhân | Người giá trị nhất đang gặp rủi ro |
-| **ROI ngân sách** | **Thấp** (Dễ chọn nhầm người giá trị thấp) | **Trung bình** (Chưa tính đến giá trị $) | **Rất cao** (Tập trung vào Value-at-Risk) |
-| **Độ phức tạp** | Thấp | Trung bình | Cao |
+| **Số ngày giao dịch gần nhất** | 177 | 187 | 6 |
+| **Giá trị giao dịch trong năm** | 702 | 678 | 533 |
 
-💡 Key Insights
-* **Tối ưu hóa nguồn lực:** Thay vì cứu 100 khách hàng bất kỳ, chúng ta tập trung vào nhóm khách hàng mang lại **Value-at-Risk** cao nhất (CLV x Churn Probability).
-* **Tránh Over-treatment:** Survival Analysis cho phép xác định những khách hàng có chu kỳ mua hàng dài tự nhiên, tránh gửi thông báo spam khi họ chưa thực sự có rủi ro rời bỏ.
-* **Chiến lược hành động:** * **High Value - High Risk:** Can thiệp đặc biệt bằng ưu đãi cá nhân hóa.
-    * **Low Value - High Risk:** Sử dụng các kênh nhắc nhở tự động chi phí thấp.
+💡 Key Insights  
+
+Khách hàng ưu tiên ở chiến lược 1,2 là những khách hàng đã giao dịch lần cuối khá lâu gần nửa năm nhưng giá trị giao dịch cao.
+Trong khi khách hàng ưu tiên ở chiến lược 3 lại là những khách hàng mới gần giao dịch và giao dịch ở mức trung bình.
+Mặc dù khách hàng trong tập chiến lược 1,2 có thể mang lại giá trị nếu đánh thức được tuy nhiên mức độ khả thi kho vì đã ngưng giao dịch quá lâu.
+Do đó ưu tiên nhóm khách ở nhóm 3 sẽ có tính khả thi cao hơn.
 
 ---
 
