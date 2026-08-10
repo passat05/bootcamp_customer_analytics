@@ -1,0 +1,316 @@
+services:
+  airflow-postgres:
+    image: postgres:13
+    container_name: customer_airflow-postgres
+    networks:
+      - mlops
+    environment:
+      - POSTGRES_USER=airflow
+      - POSTGRES_PASSWORD=airflow
+      - POSTGRES_DB=airflow
+    volumes:
+      - airflow_db:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "airflow" ]
+      interval: 5s
+      retries: 5
+
+  airflow-redis:
+    image: redis:latest
+    container_name: customer_airflow-redis
+    networks:
+      - mlops
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      retries: 5
+
+  airflow-init:
+    build: ./airflow
+    container_name: customer_airflow-init
+    networks:
+      - mlops
+    restart: "no"
+    command: bash -c "airflow db init && airflow users create --username airflow --password airflow --firstname Anonymous --lastname User --role Admin --email admin@example.org"
+    depends_on:
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://airflow-redis:6379/1
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow-secret-key-12345
+      - AIRFLOW_UID=50000
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+
+  airflow-webserver:
+    build: ./airflow
+    container_name: customer_airflow-webserver
+    networks:
+      - mlops
+    restart: "no"
+    command: webserver
+    ports:
+      - "8080:8080"
+    depends_on:
+      airflow-init:          # ✅ service name, không phải container_name
+        condition: service_completed_successfully
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://airflow-redis:6379/1
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow-secret-key-12345
+      - AIRFLOW__WEBSERVER__EXPOSE_CELERY_LOGS=True
+      - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8080/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  airflow-scheduler:
+    build: ./airflow
+    container_name: customer_airflow-scheduler
+    networks:
+      - mlops
+    restart: "no"
+    command: scheduler
+    depends_on:
+      airflow-init:          # ✅ service name
+        condition: service_completed_successfully
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://airflow-redis:6379/1
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow-secret-key-12345
+      - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
+      - AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC=10
+      # ✅ Fix: dùng đúng section [database] thay vì [core] (deprecated)
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_SIZE=10
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_RECYCLE=3600
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_MAX_OVERFLOW=20
+
+  airflow-worker:
+    build: ./airflow
+    container_name: customer_airflow-worker
+    hostname: airflow-worker                   # ✅ Fix: Celery cần hostname để đặt tên node
+    networks:
+      - mlops
+    restart: "no"
+    command: celery worker -H worker@%h
+    depends_on:
+      airflow-init:
+        condition: service_completed_successfully
+      airflow-postgres:
+        condition: service_healthy
+      airflow-redis:
+        condition: service_healthy
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - ./plugins:/opt/airflow/plugins
+      - ./scripts:/opt/airflow/scripts
+      - ./data:/opt/airflow/data
+      - ./src:/opt/airflow/src          # ✅ mount src/ để Python tìm thấy feature_engineering
+    environment:
+      - AIRFLOW_HOME=/opt/airflow
+      - AIRFLOW__CORE__DAGS_FOLDER=/opt/airflow/dags
+      - AIRFLOW__CORE__EXECUTOR=CeleryExecutor
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__RESULT_BACKEND=db+postgresql://airflow:airflow@airflow-postgres/airflow
+      - AIRFLOW__CELERY__BROKER_URL=redis://airflow-redis:6379/1
+      - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - AIRFLOW__WEBSERVER__SECRET_KEY=airflow-secret-key-12345
+      - AIRFLOW__WEBSERVER__BASE_URL=http://localhost:8080
+      - MLFLOW_TRACKING_URI=http://mlflow-server:5000
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - AWS_DEFAULT_REGION=us-east-1
+      - PYTHONPATH=/opt/airflow        # ✅ Fix: để Python tìm thấy src/
+      - AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC=10
+      # ✅ Fix: dùng đúng section [database] thay vì [core] (deprecated)
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_SIZE=10
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_POOL_RECYCLE=3600
+      - AIRFLOW__DATABASE__SQL_ALCHEMY_MAX_OVERFLOW=20
+
+  mlflow-postgres:
+    image: postgres:13
+    container_name: customer_mlflow-postgres
+    networks:
+      - mlops
+    ports:
+      - "5433:5432"
+    volumes:
+      - mlflow_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=mlflow
+      - POSTGRES_PASSWORD=mlflow
+      - POSTGRES_DB=mlflow
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "mlflow" ]
+      interval: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio
+    container_name: customer_minio
+    networks:
+      - mlops
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  create-minio-buckets:
+    image: minio/mc:latest
+    container_name: customer_create-minio-buckets
+    networks:
+      - mlops
+    depends_on:
+      - minio
+    entrypoint: >
+      bash -c "
+      /usr/bin/mc alias set minio http://minio:9000 minioadmin minioadmin &&
+      /usr/bin/mc mb --ignore-existing minio/mlflow-artifacts &&
+      /usr/bin/mc mb --ignore-existing minio/dvc-storage &&
+      exit 0
+      "
+
+  mlflow-server:
+    build:
+      context: ./mlflow
+      dockerfile: Dockerfile
+    container_name: customer_mlflow-server
+    networks:
+      - mlops
+    ports:
+      - "5001:5000"
+    depends_on:
+      mlflow-postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command: [
+      "mlflow", "server",
+      "--host", "0.0.0.0",
+      "--port", "5000",
+      "--backend-store-uri", "postgresql://mlflow:mlflow@mlflow-postgres:5432/mlflow",
+      "--default-artifact-root", "s3://mlflow-artifacts",
+      "--artifacts-destination", "s3://mlflow-artifacts"
+    ]
+    environment:
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_DEFAULT_REGION=us-east-1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1', 5000), timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  fastapi-service:
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
+    container_name: customer_fastapi-service
+    networks:
+      - mlops
+    ports:
+      - "8000:8000"
+    depends_on:
+      mlflow-server:
+        condition: service_healthy
+    volumes:
+      - ./main.py:/app/main.py       # ✅ mount main.py từ root
+      - ./src:/app/src               # ✅ mount src/ để import feature_engineering
+      - ./data:/app/data             # ✅ mount data để DataLoader đọc CSV
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow-server:5000
+      - MLFLOW_S3_ENDPOINT_URL=http://minio:9000
+      - AWS_ACCESS_KEY_ID=minioadmin
+      - AWS_SECRET_ACCESS_KEY=minioadmin
+      - AWS_DEFAULT_REGION=us-east-1
+      - MODEL_NAME=Churn_model       # ✅ Fix: đúng tên model đã register trong MLflow
+      - DATA_BASE_PATH=/app          # ✅ Fix: DataLoader tự thêm "data/" nên base_path không cần "/data"
+      - PYTHONPATH=/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    container_name: customer_prometheus
+    networks:
+      - mlops
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+
+  grafana:
+    image: grafana/grafana:10.4.0
+    container_name: customer_grafana
+    networks:
+      - mlops
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    depends_on:
+      - prometheus
+
+networks:
+  mlops:
+    name: customer_mlops
+    driver: bridge
+
+volumes:
+  minio_data:
+  airflow_db:
+  mlflow_db:
+  airflow_logs:

@@ -1,0 +1,17 @@
+# ML core
+mlflow==2.11.3
+scikit-learn
+lightgbm          # ✅ thêm mới — dùng trong train_model.py
+lifelines          # ✅ thêm mới — dùng trong survival_analyzer.py
+scikit-survival   # ✅ dùng trong train_survival_model.py (integrated_brier_score)
+
+# Data
+pandas
+numpy
+ 
+# Database / storage
+psycopg2-binary
+boto3
+ 
+# Serving
+joblib
