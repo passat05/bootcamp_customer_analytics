@@ -166,22 +166,34 @@ def build_survival_training_dataset(
     customers: pd.DataFrame,
     transactions: pd.DataFrame,
     inactivity_window: int,
+    snapshot_date: pd.Timestamp | None = None,
 ) -> pd.DataFrame:
     """
     Build the (customer_id, frequency, avg_amount, duration, event) table
     used to fit CoxPH. Mirrors build_churn_training_dataset's snapshot logic
     so "event=1" here means the same thing as "churn=1" there.
+
+    snapshot_date defaults to compute_snapshot_date(transactions) (the
+    existing 80%-of-timeline behavior, unchanged for train_survival_model.py)
+    but can be overridden so a caller can build this dataset against the
+    same snapshot used elsewhere (e.g. to compare against a churn model's
+    OOT cohort).
     """
-    snapshot_date = compute_snapshot_date(transactions)
+    if snapshot_date is None:
+        snapshot_date = compute_snapshot_date(transactions)
     labels = build_churn_labels(transactions, snapshot_date, inactivity_window)
     labels = labels.rename(columns={"churn": "event"})
 
-    covariates = transactions.groupby("customer_id").agg(
+    txns_observed = transactions[transactions["transaction_date"] <= snapshot_date]
+
+    # Point-in-time discipline: frequency/avg_amount must only reflect what
+    # happened on/before snapshot_date — otherwise a customer's post-snapshot
+    # activity leaks into the covariates used to explain their own event.
+    covariates = txns_observed.groupby("customer_id").agg(
         frequency=("amount", "count"),
         avg_amount=("amount", "mean"),
     ).reset_index()
 
-    txns_observed = transactions[transactions["transaction_date"] <= snapshot_date]
     last_txn_observed = (
         txns_observed.groupby("customer_id")["transaction_date"].max()
         .rename("last_txn_observed")
