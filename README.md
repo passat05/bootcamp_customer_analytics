@@ -44,15 +44,16 @@ Vai trò: Data Scientist tại một doanh nghiệp Fintech/E-commerce đang đ�
 | P(alive) thấp (BG-NBD) | 64.4% | 27.2% |
 | **CLV cao × rủi ro cao (Survival) — thắng cuộc** | **96.7%** | **40.9%** |
 
-**Từ kịch bản ROI** (không phải backtest — xem giải thích bên dưới; dùng chiến lược thắng cuộc, giả định `TREATMENT_EFFECT=15%` chưa từng được đo):
+**Từ kịch bản ROI** (không phải backtest — xem giải thích bên dưới; tính cho Mass marketing và cả 3 phương pháp, giả định `TREATMENT_EFFECT=15%` chưa từng được đo):
 
-| Chiến lược | Chi phí | ROI (kịch bản 15%) | Hiệu ứng can thiệp tối thiểu để hoà vốn |
+| Phương pháp | Chi phí | ROI (kịch bản 15%) | Hiệu ứng can thiệp tối thiểu để hoà vốn |
 |---|---|---|---|
-| Ngẫu nhiên 20% | 1/5 chi phí mass | ~72% | 8.7% |
+| Xác suất churn cao (phân loại) | 1/5 chi phí mass | ~46% | 10.3% |
 | Mass marketing (100%) | Cao nhất | ~83% | 8.2% |
-| **Survival-based, top 20% (đề xuất)** | 1/5 chi phí mass | **~96%** | **7.7% (thấp nhất)** |
+| P(alive) thấp (BG-NBD) | 1/5 chi phí mass | ~83% | 8.2% |
+| **CLV cao × rủi ro cao (Survival) — đề xuất** | 1/5 chi phí mass | **~90%** | **7.9% (thấp nhất)** |
 
-**Việc "chọn ai" (bảng trên) đã được backtest bằng dữ liệu thật. Việc "can thiệp có đáng tiền không" (bảng này) thì chưa** — vì dữ liệu chưa từng có chiến dịch thật nào chạy để đo hiệu ứng can thiệp. Cột cuối là điều duy nhất kết luận được chắc chắn từ dữ liệu quan sát: chiến lược Survival-based cần hiệu ứng can thiệp thật thấp nhất mới hoà vốn, nên là lựa chọn an toàn hơn trước sai số của giả định — không chỉ vì ROI cao hơn ở một kịch bản giả định. Chi tiết: mục 4 trong [`notebooks/02_propensity_targeting_campaign.ipynb`](notebooks/02_propensity_targeting_campaign.ipynb).
+**Việc "chọn ai" (bảng trên) đã được backtest bằng dữ liệu thật. Việc "can thiệp có đáng tiền không" (bảng này) thì chưa** — vì dữ liệu chưa từng có chiến dịch thật nào chạy để đo hiệu ứng can thiệp. Cột cuối là điều duy nhất kết luận được chắc chắn từ dữ liệu quan sát: phương pháp Survival-based cần hiệu ứng can thiệp thật thấp nhất mới hoà vốn — và đây cũng là phương pháp bắt nhiều doanh thu rủi ro thật nhất ở bảng trên. Hai tiêu chí độc lập (value-capture đã backtest, và độ an toàn tài chính trước giả định) đồng thuận, không chỉ dựa vào một con số ROI đẹp. Chi tiết: mục 4 trong [`notebooks/02_propensity_targeting_campaign.ipynb`](notebooks/02_propensity_targeting_campaign.ipynb).
 
 ---
 
