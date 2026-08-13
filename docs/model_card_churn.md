@@ -61,6 +61,15 @@ Stacked-cohort dataset: 15 monthly snapshots, 33.8k total (customer, snapshot) r
 
 Class imbalance: `scale_pos_weight` computed from the actual train split (methodology §4.2's recommendation — LightGBM handles imbalance directly rather than SMOTE).
 
+**Algorithm choice — LightGBM vs. XGBoost:** LightGBM was picked at project setup without ever being benchmarked against XGBoost, the other common default for tabular gradient boosting. `scripts/compare_boosting_models.py` closes that gap: both trained on the identical stacked-cohort dataset, the identical train/in-time/OOT split (same `GroupShuffleSplit` seed), and a matched hyperparameter budget (same `n_estimators`/`learning_rate`/`max_depth`/`scale_pos_weight` — a same-budget comparison, not a full tuning bake-off for either library).
+
+| Model | In-time AUC | **OOT AUC** | Decile-1 lift | Capture@20% |
+|---|---|---|---|---|
+| LightGBM | 0.8182 | **0.7883** | 1.64x | 33.7% |
+| XGBoost | 0.8184 | **0.7882** | 1.73x | 33.6% |
+
+The OOT AUC difference (0.0001) is noise, not signal — on this feature set (5 numeric RFM-style features, no categoricals) neither library has a real edge. This matches expectation: LightGBM's usual advantages (native categorical handling, faster training via histogram binning + leaf-wise growth on large/wide data) don't have anything to bite into here, and both converge to the same performance ceiling. That ceiling is set by the feature set (`RFM_v1`, 5 features), not the choice of boosting library — a reason to prioritize feature work over algorithm-swapping if OOT AUC needs to move. LightGBM stays the production choice for training-speed and operational-simplicity reasons (already the established pipeline), not because it out-predicts XGBoost.
+
 ---
 
 ## 4. Evaluation — business language (methodology §6)
